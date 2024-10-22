@@ -12,12 +12,20 @@ export default function App() {
     setItem((items) => items.filter((item) => item.id !== id))
   }
 
+  function handleToggleItems(id) {
+    setItem((items) => items.map((item) => item.id === id ? { ...item, packed: !item.packed } : item))
+  }
+
   return (
     <div className="app">
       <Logo />
       <Form onAddItems={handleAddItems} />
-      <PackingList items={items} handleDeleteItems={handleDeleteItems} />
-      <Stats />
+      <PackingList
+        items={items}
+        handleDeleteItems={handleDeleteItems}
+        onToggleItems={handleToggleItems}
+      />
+      <Stats items={items} />
     </div>
   )
 }
@@ -62,20 +70,21 @@ function Form({ onAddItems }) {
   </form>
 }
 
-function PackingList({ items, handleDeleteItems }) {
+function PackingList({ items, handleDeleteItems, onToggleItems }) {
   return (
     <div className="list">
       <ul>
         {items.map((item) =>
-          (<Item item={item} handleDeleteItems={handleDeleteItems} key={item.id} />)
+          (<Item item={item} handleDeleteItems={handleDeleteItems} onToggleItems={onToggleItems} key={item.id} />)
         )}
       </ul>
     </div>)
 }
 
-function Item({ item, handleDeleteItems }) {
+function Item({ item, handleDeleteItems, onToggleItems }) {
   return (
     <li>
+      <input type="checkbox" value={item.packed} onChange={() => onToggleItems(item.id)} />
       <span style={item.packed ? { textDecoration: "line-through" } : {}}>
         {item.quantity}  {item.description}
       </span>
@@ -84,8 +93,26 @@ function Item({ item, handleDeleteItems }) {
   )
 }
 
-function Stats() {
-  return <footer className="stats">
-    <em>👜 You have X items on your list, and you already packed X (X%)</em>
-  </footer>
+function Stats({ items }) {
+
+  if (!items.length) {
+    return <p className="stats">
+      <em>
+        Let start adding some items to your item list 🚀
+      </em>
+    </p>
+  }
+
+  const numItem = items.length;
+  const numPackedItem = items.filter((item) => item.packed).length;
+  const Percentage = Math.round(numPackedItem / numItem * 100)
+  return (
+    <footer className="stats">
+      <em>
+        {Percentage === 100 ?
+          "You got everything! ready to go ✈️" :
+          `👜 You have ${numItem} items on your list, and you already packed ${numPackedItem} (${Percentage}%)`
+        }
+      </em>
+    </footer>)
 }
